@@ -27,7 +27,7 @@ import UIKit
 import AVFoundation
 import OneTimePassword
 
-class TokenScannerViewController: UIViewController, QRScannerDelegate {
+final class TokenScannerViewController: UIViewController, QRScannerDelegate {
     private let scanner = QRScanner()
     private let videoLayer = AVCaptureVideoPreviewLayer()
 
@@ -184,10 +184,18 @@ class TokenScannerViewController: UIViewController, QRScannerDelegate {
 
     // MARK: QRScannerDelegate
 
+    private var lastScanTime = Date(timeIntervalSince1970: 0)
+    private let minimumScanInterval: TimeInterval = 1
+
     func handleDecodedText(_ text: String) {
         guard viewModel.isScanning else {
             return
         }
-        dispatchAction(.scannerDecodedText(text))
+
+        let now = Date()
+        if now.timeIntervalSince(lastScanTime) > minimumScanInterval {
+            lastScanTime = now
+            dispatchAction(.scannerDecodedText(text))
+        }
     }
 }
